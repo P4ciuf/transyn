@@ -2,12 +2,12 @@ services:
   redis:
     image: redis:7-alpine
     container_name: transyn-redis
-    expose:
-      - "6379"
     volumes:
       - redis-data:/data
+    networks:
+      - transyn-net
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -27,6 +27,8 @@ services:
       - RATE_LIMIT_WINDOW_MS=60000
       - TRANSLATE_SERVICE_URL=http://translate:8000
       - NODE_ENV=production
+    networks:
+      - transyn-net
     depends_on:
       redis:
         condition: service_healthy
@@ -37,14 +39,14 @@ services:
       context: .
       dockerfile: apps/translate/Dockerfile
     container_name: transyn-translate
-    expose:
-      - "8000"
     environment:
       - REDIS_URL=redis://redis:6379
       - MODEL_NAME=facebook/m2m100_418M
       - QUANTIZATION=int8
       - LOG_LEVEL=INFO
       - MAX_INPUT_LENGTH=512
+    networks:
+      - transyn-net
     depends_on:
       redis:
         condition: service_healthy
@@ -64,6 +66,8 @@ services:
       - ./config/nginx/entrypoint.sh:/docker-entrypoint.d/01-envsubst.sh:ro
       - ./certs:/etc/nginx/certs:ro
       - ./certbot/www:/var/www/certbot:ro
+    networks:
+      - transyn-net
     depends_on:
       - api
     restart: unless-stopped
@@ -76,8 +80,14 @@ services:
       - ./certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     restart: unless-stopped
+    networks:
+      - transyn-net
     profiles:
       - certbot
+
+networks:
+  transyn-net:
+    driver: bridge
 
 volumes:
   redis-data:
