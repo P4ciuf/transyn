@@ -1,0 +1,44 @@
+[project]
+name = "transyn-translate"
+version = "0.0.1"
+description = "M2M100 translation inference service for transyn"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "P4ciuf" }]
+
+[project.scripts]
+translate-worker = "translate.worker:main"
+
+[project.dependencies]
+redis = ">=5.0.0"
+pydantic = ">=2.0.0"
+pydantic-settings = ">=2.0.0"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
