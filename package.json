@@ -1,0 +1,32 @@
+{
+  "name": "transyn",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "A self-hosted translation API for developers and SaaS platforms, powered by M2M100. Provides fast and scalable translation without reliance on external services. Aiming to be a \"DeepL-lite\" solution with full control",
+  "scripts": {
+    "dev": "pnpm --filter @transyn/api dev",
+    "build": "pnpm --filter @transyn/api build",
+    "start": "pnpm --filter @transyn/api start",
+    "test": "pnpm --filter @transyn/api test",
+    "lint": "pnpm --filter @transyn/api lint",
+    "format": "pnpm --filter @transyn/api format",
+    "format:check": "pnpm --filter @transyn/api format:check",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "docker:logs": "docker compose logs -f",
+    "docker:restart": "docker compose restart",
+    "docker:ps": "docker compose ps",
+    "docker:certbot": "docker compose run --rm certbot certonly --webroot -w /var/www/certbot"
+  },
+  "author": "P4ciuf | https://github.com/P4ciuf",
+  "license": "Apache-2.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.5.0",
+      "onFail": "download"
+    }
+  }
+}
