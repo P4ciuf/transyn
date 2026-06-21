@@ -1,0 +1,83 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: transyn-redis
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: transyn-api
+    expose:
+      - "3000"
+    environment:
+      - PORT=3000
+      - REDIS_URL=redis://redis:6379
+      - RATE_LIMIT_MAX=100
+      - RATE_LIMIT_WINDOW_MS=60000
+      - TRANSLATE_SERVICE_URL=http://translate:8000
+      - NODE_ENV=production
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  translate:
+    build:
+      context: .
+      dockerfile: apps/translate/Dockerfile
+    container_name: transyn-translate
+    expose:
+      - "8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MODEL_NAME=facebook/m2m100_418M
+      - QUANTIZATION=int8
+      - LOG_LEVEL=INFO
+      - MAX_INPUT_LENGTH=512
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: transyn-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./config/nginx/entrypoint.sh:/docker-entrypoint.d/01-envsubst.sh:ro
+      - ./certs:/etc/nginx/certs:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: transyn-certbot
+    volumes:
+      - ./certs:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
+    profiles:
+      - certbot
+
+volumes:
+  redis-data:
