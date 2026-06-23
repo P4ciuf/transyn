@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { logger } from "./logger.js";
+// dotenv must be loaded before any static accessor reads process.env.
 dotenv.config();
 
 /**
@@ -7,6 +8,12 @@ dotenv.config();
  *
  * Loads dotenv on import, provides type-safe accessors with default values,
  * and fails fast at startup if any required variable is missing.
+ *
+ * @example
+ * ```ts
+ * // Access a validated variable with a default fallback
+ * const port = EnvUtils.variables.PORT;
+ * ```
  */
 export class EnvUtils {
   /**
@@ -56,6 +63,10 @@ export class EnvUtils {
    *
    * Called once at import time in {@link app.ts}; exits the process with
    * code 1 if any required variable is missing.
+   *
+   * Required (must be set): `REDIS_URL` (string).<br>
+   * Optional with defaults: `PORT`, `RATE_LIMIT_MAX`,
+   * `RATE_LIMIT_WINDOW_MS`, `TRANSLATE_SERVICE_URL`, `NODE_ENV`.
    */
   public static checkVariables(): void {
     try {
@@ -66,7 +77,7 @@ export class EnvUtils {
       EnvUtils.get<string>("TRANSLATE_SERVICE_URL");
       EnvUtils.get<string>("NODE_ENV");
     } catch (error) {
-      logger.error("Error loading environment variables", { error });
+      logger.error("Error loading environment variables", { meta: error });
       process.exit(1);
     }
   }
@@ -76,6 +87,13 @@ export class EnvUtils {
    *
    * Accessible after {@link EnvUtils.checkVariables} has run.  Each property
    * falls back to a sensible default when the corresponding env var is absent.
+   *
+   * @property REDIS_URL - Redis connection string (required).
+   * @property PORT - HTTP server port (default 3000).
+   * @property RATE_LIMIT_MAX - Max requests per time window (default 100).
+   * @property RATE_LIMIT_WINDOW_MS - Rate-limit time window in ms (default 60000).
+   * @property TRANSLATE_SERVICE_URL - Python translation worker URL (default http://localhost:8000).
+   * @property NODE_ENV - Runtime environment (default "development").
    */
   public static variables = {
     REDIS_URL: EnvUtils.get<string>("REDIS_URL", true),

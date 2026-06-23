@@ -38,7 +38,7 @@ export function registerErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((error, req, reply) => {
     // Suppress logging during test runs to keep output clean
     if (process.env.NODE_ENV !== "test") {
-      logger.error("New Error detected:", error);
+      logger.error("New Error detected:", { meta: error });
     }
 
     if (error instanceof AppError) {

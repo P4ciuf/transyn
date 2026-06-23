@@ -5,6 +5,11 @@
  * Swagger/OpenAPI documentation, and route autoloading. Runs environment
  * validation and error-handler registration on import.
  *
+ * **Side effects on import:** calls {@link EnvUtils.checkVariables}
+ * (exits the process if required env vars are missing), builds the Fastify
+ * instance, and begins listening. Importing this module is enough to start
+ * the server — no explicit bootstrap call is needed.
+ *
  * @module app
  */
 import fastify from "fastify";
@@ -27,6 +32,7 @@ app.register(rateLimit, {
   max: EnvUtils.variables.RATE_LIMIT_MAX,
   timeWindow: EnvUtils.variables.RATE_LIMIT_WINDOW_MS,
 });
+// Open CORS for MVP; restrict to known origins before production launch
 app.register(cors, {
   origin: "*",
   credentials: false,
@@ -61,9 +67,10 @@ registerErrorHandler(app);
 
 await app.ready();
 
+// [IP_ADDRESS] is a template token replaced at deploy time (e.g. by envsubst in nginx/Docker entrypoint)
 app.listen({ port: EnvUtils.variables.PORT, host: "[IP_ADDRESS]" }, (err) => {
   if (err) {
-    logger.error("Error starting server", { err });
+    logger.error("Error starting server", { meta: err });
     process.exit(1);
   }
   logger.info(`Server running on port ${EnvUtils.variables.PORT}`);
