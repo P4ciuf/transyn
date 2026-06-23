@@ -6,8 +6,9 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 FROM base AS builder
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir --upgrade pip && \
+COPY . .
+RUN rm -rf /root/.cache/pip /tmp/pip-* && pip cache purge 2>/dev/null; \
+    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
 FROM base AS runner
@@ -17,7 +18,10 @@ RUN groupadd --system --gid 1001 translate && \
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-COPY --chown=translate:translate src/ ./src/
+COPY --chown=translate:translate src/translate/ ./translate/
+
+RUN mkdir -p /home/translate/.cache/huggingface && \
+    chown -R translate:translate /home/translate
 
 USER translate:translate
 
@@ -26,5 +30,6 @@ EXPOSE 8000
 ENV REDIS_URL=redis://localhost:6379
 ENV MODEL_NAME=facebook/m2m100_418M
 ENV QUANTIZATION=int8
+ENV HF_HOME=/home/translate/.cache/huggingface
 
 CMD ["python", "-m", "translate.worker"]

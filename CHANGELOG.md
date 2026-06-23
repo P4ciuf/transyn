@@ -8,36 +8,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Full BullMQ queue plugin (`QueuePlugin`) with Redis-backed job submission, polling result retrieval, queue statistics, and graceful shutdown
-- Full Redis plugin wrapper (`RedisPlugin`) around ioredis with connect/error event logging and convenience methods (get, set, del, exists, keys, ping, disconnect)
-- Barrel re-export module for the plugins layer (`plugins/index.ts`)
-- Translate service package init (`__init__.py`) with architecture docstring and version constant
-- Pydantic `Settings` class for the translation worker with field-level docstrings, inline config comments, and usage example
-- M2M100 model wrapper (`TranslationModel`) with eager loading, optional bitsandbytes INT8 quantisation, CUDA/CPU device selection, and `translate()` method
-- Redis-backed translation worker entry point (`main()`) with blocking BRPOP loop, signal handling (SIGINT/SIGTERM), JSON payload validation, and TTL result storage
-- Comprehensive JSDoc documentation for every exported function, class, method, interface, and module constant across the Fastify API codebase
-- Comprehensive Google-style docstrings for every module, class, function, and global in the Python translate service
-- Inline comments documenting non-obvious design decisions (CORS open policy, IP placeholder, Redis error log level, BRPOP return shape, device tensor move, eager model load, pyright suppression)
-- Exhaustive test suite: 96 tests total (78 Vitest for TypeScript, 18 pytest for Python) covering errors, plugins, utils, server bootstrap, settings, model, and worker
-- Pyright report-suppression rules (`reportMissingImports`, `reportMissingTypeStubs`, `reportArgumentType`) for smoother development experience
-- `requirements.txt` for the translate service
+- `QueueService` class (`apps/api/src/services/bullmq.ts`) with BullMQ-backed job submission, polling result retrieval via Redis, queue statistics, and graceful shutdown — replaces the legacy `QueuePlugin`
+- `RedisPlugin` class (`apps/api/src/services/redis.ts`) around ioredis with connect/error event logging and convenience methods (get, set, del, exists, keys, ping, disconnect) — replaces the legacy `RedisPlugin`
+- `POST /api/translate` route (`apps/api/src/routes/translation.route.ts`) as an auto-discovered route factory, with Fastify Swagger schema, request validation via M2M100 language code enum, and OpenAPI response schemas (200, 400, 500)
+- `GET /health` endpoint in `app.ts` with Fastify Swagger schema (`tags: ["System"]`, `operationId: healthCheck`)
+- M2M100 language code map (`apps/api/src/config/langs.ts`) — 80 language codes as human-readable names used for validation and OpenAPI docs
+- `Language` type (`apps/api/src/types/langs.ts`) — union of M2M100 language names
+- `TranslationJobData`, `TranslationResult`, `QueueStats` interfaces (`apps/api/src/types/queue.ts`)
+- `fastify.d.ts` type augmentation declaring the `queueService` preHandler hook slot on `FastifyInstance`
+- OpenAPI documentation for all API endpoints: `POST /api/translate` and `GET /health`, incl. descriptions, summaries, tags, operationIds, request body schema, response schemas, and examples
+- JSDoc for all exported classes, methods, types, and module constants across the API codebase
+- Auto-detected source language in `TranslationModel.translate()` via langdetect, falling back to English — removes the manual `source_lang` parameter
+- Resilient Redis worker connection: explicit `socket_connect_timeout`, `conn.ping()` on startup, and automatic reconnection loop on `ConnectionError`
+- Differentiated BRPOP error handling: `TimeoutError` logged at debug, `ConnectionError` triggers reconnection, other errors handled separately
+- HTTP status → error code mapping in the global Fastify error handler (`registerErrorHandler`) — previously hardcoded to `TOO_MANY_REQUESTS` for all status-carrying errors
+- `.dockerignore` files for the monorepo root and translate service
+- Vitest test suite for `QueueService` (11 tests: init, submitTranslation, waitForResult with immediate/polling/timeout, getStats, close)
+- Vitest test suite for `RedisPlugin` (15 tests: connect, getClient, closeClient, disconnect, ping, get, set, del, exists, keys)
+- Vitest test suite for `POST /api/translate` route (9 tests: schema, handler, success, null result, error propagation)
+- Docker healthchecks in Compose: API HTTP check on `/health`, Redis `redis-cli ping`, translate process grep, nginx depends on healthy upstreams
+- Resource limits (`deploy.resources.limits.memory`) in `docker-compose.yml` for all services
+- Docker DNS resolver (`resolver 127.0.0.11`) in nginx configuration for dynamic upstream resolution
 
 ### Changed
-- Logger refactored with type-safe dispatch map (`loggers`), extracted `formatMessage` helper, and `LogOptions`/`LogLevel` explicit types
-- Logger `error`, `warn`, `info`, `debug` methods now accept a `LogOptions` object instead of raw metadata, enabling custom prefixes and structured context
-- Logger `audit()` method accepts an optional `prefix` parameter for sub-categorised audit trails
-- Pinned `bullmq` to `5.79.0` and `ioredis` to `5.10.1` (exact versions) in API dependencies
-- Vitest configuration extended to discover tests co-located in `src/**/__test__/` directories
-- Pyright configuration corrected: `venvPath` points to monorepo root `.venv`, not translate-local venv
-- Expanded JSDoc for `app.ts`, `env.ts`, `errorHandler.ts`, `bullmq.ts`, `redis.ts`, and `logger.ts` with side-effects notes, examples, and property annotations
-- Expanded Python docstrings for `__init__.py`, `config.py`, `model.py`, and `worker.py` with cross-references, architecture notes, and usage examples
+- **Breaking:** `QueuePlugin` renamed to `QueueService` and relocated from `plugins/` to `services/`; `init()` replaces `Instance()`, `submitTranslation` drops the `sourceLang` parameter
+- **Breaking:** `RedisPlugin` relocated from `plugins/` to `services/`; no longer a singleton — each `Instance()` call creates a fresh Redis connection
+- **Breaking:** `TranslationModel.translate()` no longer accepts a `source_lang` parameter; source language is now auto-detected via langdetect
+- **Breaking:** `TranslationResult` no longer includes `sourceLang`; removed `source_lang` field from worker job payload
+- **Breaking:** API entry point changed from `dist/index.js` to `dist/app.js`; `src/index.ts` removed
+- Route architecture: single `POST /api/translate` route (`translation.route.ts`) auto-discovered by `loadRoutes` — replaces the legacy `routes/translation.ts` and `routes/index.ts` barrel
+- App host binding changed from `[IP_ADDRESS]` placeholder to `0.0.0.0` in `app.ts`
+- Error handler: `fallback.statusCode` → error code mapping now covers 400, 401, 403, 404, 409, 429, and 5xx instead of always returning `TOO_MANY_REQUESTS`
+- Nginx: moved `limit_req_zone` to top-level `http` block, switched redirect from `301` to `308`, added DNS resolver for dynamic `proxy_pass`, removed `http2` listen directive (replaced with `http2 on`)
+- Nginx: added Docker internal DNS resolver (`127.0.0.11`) in `nginx.conf`
+- API Dockerfile: fixed monorepo workspace-aware build (copies root `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`), builds in `apps/api` context, runs from `apps/api/dist/app.js`
+- Translate Dockerfile: fixed build context to `apps/translate`, added `HF_HOME` for HuggingFace cache, added HuggingFace cache directory with correct permissions
+- Docker Compose: fixed service build contexts (`dockerfile: ./apps/api/Dockerfile`, translate uses its own dir), added healthchecks with `depends_on condition: service_healthy` for nginx → api/translate
+- Docker Compose: Redis healthcheck interval reduced from 5s to 3s
+- `.npmrc`: replaced `public-hoist-pattern[]` rules with `shamefully-hoist=true`
+- `package.json`: replaced `devEngines` with `packageManager` field
+- `pyproject.toml`: added `accelerate`, `bitsandbytes`, `langdetect`, `sentencepiece` dependencies
+- Vitest env tests: mocked `dotenv` to prevent `.env` file interference; added explicit `delete process.env.*` before testing numeric defaults
+- Vitest app tests: added `decorate` and `get` to mock Fastify instance to match new `app.ts` usage
+- Changelog: restructured and updated `[Unreleased]` to reflect the current monorepo layout and refactored codebase
 
 ### Fixed
-- Logger calls in `app.ts`, `errorHandler.ts`, and `env.ts` now pass metadata via `{ meta: err }` instead of raw error objects, matching the logger's expected signature
+- Nginx configuration: TLS `ssl` + `http2` directives now compatible with modern nginx syntax
+- Worker: BRPOP `TimeoutError` no longer logged as an error (debug level only, retries silently)
+- Worker: `ConnectionError` triggers automatic reconnection instead of skipping the loop iteration
+- Worker: `conn.ping()` called after initial connection and after reconnection to verify Redis is reachable
+- Translation: `langdetect` seed set to `0` for deterministic source language detection across calls
 
 ### Removed
-- Empty placeholder stub `apps/api/src/plugins/rate-limit.ts`
-- Empty test stub `apps/api/tests/translate.test.ts`
+- `apps/api/src/plugins/` directory — all plugin files relocated to `services/` or removed as stale stubs
+- `apps/api/src/queues/events.ts` — stale stub removed
+- `apps/api/src/routes/index.ts` — barrel file superseded by `loadRoutes` auto-discovery
+- `apps/api/src/routes/translation.ts` — replaced by `translation.route.ts`
+- `apps/api/src/services/cache.ts` — stale stub removed
+- `apps/api/src/config/env.ts` — empty file removed
+- `apps/api/src/index.ts` — entry point removed; `app.ts` is now the direct entry
+- `TranslationModel.translate()` `source_lang` parameter — replaced by auto-detection via langdetect
+- `TranslationResult.sourceLang` field — removed from both API types and worker output
+- Worker job payload `sourceLang` field — no longer expected or read
 
 ## [0.0.1] - 2026-06-21
 

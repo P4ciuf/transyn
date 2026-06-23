@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Python virtual environments
+.venv/
+**/.venv/
+**/venv/
+**/env/
+
+# Python bytecode and caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+**.ruff_cache/
+**.pytest_cache/
+
+# Git
+.git/
+
+# Logs
+logs/
+*.log
+
+# Build outputs
+dist/
+.output/
+
+# Certificates
+certs/
+certbot/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+*.tsbuildinfo

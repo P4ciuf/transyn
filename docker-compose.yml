@@ -8,15 +8,18 @@ services:
       - transyn-net
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
+      interval: 3s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: ./apps/api/Dockerfile
     container_name: transyn-api
     expose:
       - "3000"
@@ -32,12 +35,21 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "require('http').get('http://localhost:3000/health',function(r){process.exit(r.statusCode===200?0:1)}).on('error',function(){process.exit(1)})" ]
+      interval: 5s
+      retries: 10
+      start_period: 10s
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   translate:
     build:
-      context: .
-      dockerfile: apps/translate/Dockerfile
+      context: ./apps/translate
+      dockerfile: Dockerfile
     container_name: transyn-translate
     environment:
       - REDIS_URL=redis://redis:6379
@@ -50,7 +62,16 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "grep -q python /proc/1/cmdline" ]
+      interval: 10s
+      retries: 12
+      start_period: 120s
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 6G
 
   nginx:
     image: nginx:1.27-alpine
@@ -69,8 +90,15 @@ services:
     networks:
       - transyn-net
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+      translate:
+        condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   certbot:
     image: certbot/certbot:latest
