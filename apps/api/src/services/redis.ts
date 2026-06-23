@@ -3,11 +3,11 @@ import { EnvUtils } from "../utils/env.js";
 import { logger } from "../utils/logger.js";
 
 /**
- * Singleton wrapper around an ioredis Redis client.
+ * Thin wrapper around an ioredis Redis client.
  *
- * Provides a lazily-initialised connection with event logging, plus
- * convenience wrappers for common Redis commands used across the
- * application.
+ * Provides a fresh Redis connection with event logging, plus convenience
+ * wrappers for common Redis commands used across the application.
+ * Call {@link Instance} to create a new connected client.
  *
  * @example
  * ```ts
@@ -28,10 +28,10 @@ export class RedisPlugin {
   }
 
   /**
-   * Returns the singleton RedisPlugin, creating the connection on first
-   * call.  Registers `connect` and `error` event handlers for logging.
+   * Creates a new RedisPlugin with a fresh ioredis connection.  Registers
+   * `connect` and `error` event handlers for logging.
    *
-   * @returns The initialised RedisPlugin instance.
+   * @returns A new RedisPlugin instance connected to Redis.
    * @async
    */
   public static async Instance(): Promise<RedisPlugin> {

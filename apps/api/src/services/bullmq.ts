@@ -1,49 +1,7 @@
 import { Queue, type JobsOptions } from "bullmq";
 import { RedisPlugin } from "./redis.js";
 import { logger } from "../utils/logger.js";
-
-/**
- * Payload pushed onto the translation queue when a client requests a
- * translation.  Mirrors the shape expected by the Python worker.
- *
- * @property id - UUID v4 job identifier shared between API and worker.
- * @property text - Source text to translate.
- * @property targetLang - M2M100 language code for the target language.
- * @property sourceLang - Optional M2M100 language code for the source
- *                        language; when omitted the worker infers it.
- */
-export interface TranslationJobData {
-  id: string;
-  text: string;
-  targetLang: string;
-  sourceLang?: string;
-}
-
-/**
- * Result written to Redis by the Python worker after a translation
- * completes.  Consumed by {@link QueuePlugin.waitForResult}.
- *
- * @property translatedText - The translated output string.
- * @property sourceLang - Language of the original text (detected or
- *                        explicit).
- * @property targetLang - Language the text was translated into.
- */
-export interface TranslationResult {
-  translatedText: string;
-  sourceLang: string;
-  targetLang: string;
-}
-
-/**
- * Snapshot of the BullMQ translation queue gathered by
- * {@link QueuePlugin.getStats}.
- */
-export interface QueueStats {
-  waiting: number;
-  active: number;
-  completed: number;
-  failed: number;
-}
+import { QueueStats, TranslationJobData, TranslationResult } from "../types/queue.js";
 
 /** BullMQ queue name shared with the Python worker. */
 const QUEUE_NAME = "translate";
@@ -51,9 +9,9 @@ const QUEUE_NAME = "translate";
 const JOB_LIST_KEY = "transyn:jobs";
 /** Redis key prefix under which the worker stores completed results. */
 const RESULT_KEY_PREFIX = "transyn:result:";
-/** Milliseconds between Redis polls in {@link QueuePlugin.waitForResult}. */
+/** Milliseconds between Redis polls in {@link QueueService.waitForResult}. */
 const DEFAULT_POLL_INTERVAL_MS = 100;
-/** Default timeout in milliseconds for {@link QueuePlugin.waitForResult}. */
+/** Default timeout in milliseconds for {@link QueueService.waitForResult}. */
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 /**
@@ -65,12 +23,12 @@ const DEFAULT_TIMEOUT_MS = 30_000;
  *
  * @example
  * ```ts
- * const queue = await QueuePlugin.init();
- * const { id } = await queue.submitTranslation("Hello", "fr", "en");
- * const result = await queue.waitForResult(id);
+ * const service = await QueueService.init();
+ * const { id } = await service.submitTranslation("Hello", "fr");
+ * const result = await service.waitForResult(id);
  * ```
  */
-export class QueuePlugin {
+export class QueueService {
   /**
    * @param queue - BullMQ Queue instance.
    * @param redisPlugin - RedisPlugin for direct Redis operations (LPUSH,
@@ -83,20 +41,20 @@ export class QueuePlugin {
   ) {}
 
   /**
-   * Initialises the BullMQ queue and returns a ready-to-use QueuePlugin
+   * Initialises the BullMQ queue and returns a ready-to-use QueueService
    * instance.  Must be called once before any other method.
    *
-   * @returns A QueuePlugin connected to Redis.
+   * @returns A QueueService connected to Redis.
    * @async
    */
-  public static async init(): Promise<QueuePlugin> {
+  public static async init(): Promise<QueueService> {
     const redisPlugin = await RedisPlugin.Instance();
     const redis = await redisPlugin.getClient();
     const queue = new Queue(QUEUE_NAME, { connection: redis });
 
     logger.info(`BullMQ queue "${QUEUE_NAME}" initialised`, { customPrefix: "bullmq" });
 
-    return new QueuePlugin(queue, redisPlugin);
+    return new QueueService(queue, redisPlugin);
   }
 
   /**
@@ -107,17 +65,15 @@ export class QueuePlugin {
    *
    * @param text - Source text to translate.
    * @param targetLang - M2M100 target language code.
-   * @param sourceLang - Optional M2M100 source language code.
    * @returns The job data including the generated UUID.
    * @async
    */
   public async submitTranslation(
     text: string,
     targetLang: string,
-    sourceLang?: string,
   ): Promise<TranslationJobData> {
     const id = crypto.randomUUID();
-    const jobData: TranslationJobData = { id, text, targetLang, sourceLang };
+    const jobData: TranslationJobData = { id, text, targetLang };
 
     // LPUSH onto the worker's Redis list before adding to BullMQ so the
     // worker can begin processing immediately.
