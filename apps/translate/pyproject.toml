@@ -42,8 +42,11 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 
 [tool.pyright]
-venvPath = "."
-venv = "venv"
+venvPath = "../.."
+venv = ".venv"
+reportMissingImports = "none"
+reportMissingTypeStubs = "none"
+reportArgumentType = "none"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/translate"]
