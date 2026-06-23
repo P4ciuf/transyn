@@ -9,11 +9,15 @@ memory footprint.
 import logging
 
 import torch
+from langdetect import DetectorFactory, detect
 from transformers import (
     BitsAndBytesConfig,
     M2M100ForConditionalGeneration,
     M2M100Tokenizer,
 )
+
+# Make langdetect deterministic across calls.
+DetectorFactory.seed = 0
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +32,8 @@ class TranslationModel:
 
     Example:
         >>> model = TranslationModel("facebook/m2m100_418M")
-        >>> model.translate("Hello world", "fr", source_lang="en")
-        {'translatedText': 'Bonjour le monde', 'sourceLang': 'en', 'targetLang': 'fr'}
+        >>> model.translate("Hello world", "fr")
+        {'translatedText': 'Bonjour le monde', 'targetLang': 'fr'}
     """
 
     def __init__(self, model_name: str, quantization: str | None = None) -> None:
@@ -67,32 +71,33 @@ class TranslationModel:
         self.model.eval()
         logger.info("Model ready")
 
-    def translate(
-        self, text: str, target_lang: str, source_lang: str | None = None
-    ) -> dict:
+    def translate(self, text: str, target_lang: str) -> dict:
         """Translate text using the loaded M2M100 model.
 
-        When *source_lang* is omitted the tokenizer's current source
-        language is used, defaulting to English if none was set.
+        The source language is automatically detected from the input text
+        using langdetect, falling back to English if detection fails.
 
         Args:
             text: Source text to translate.
             target_lang: M2M100 language code for the target language
                 (e.g. ``"fr"``, ``"de"``, ``"es"``).
-            source_lang: Optional M2M100 language code for the source
-                language.  When ``None``, the tokenizer's preset or
-                ``"en"`` is used.
 
         Returns:
-            A dictionary with keys ``translatedText`` (str),
-            ``sourceLang`` (str), and ``targetLang`` (str).
+            A dictionary with keys ``translatedText`` (str) and
+            ``targetLang`` (str).
         """
-        if source_lang is None:
-            # Fall back to the tokenizer's current source language or "en".
-            self.tokenizer.src_lang = self.tokenizer.src_lang or "en"
-        else:
-            self.tokenizer.src_lang = source_lang
+        try:
+            source_lang = detect(text)
+        except Exception:
+            source_lang = "en"
 
+        if source_lang not in self.tokenizer.lang_code_to_id:
+            logger.warning("Detected language %s not supported by model, falling back to en", source_lang)
+            source_lang = "en"
+
+        logger.debug("Detected source language: %s", source_lang)
+
+        self.tokenizer.src_lang = source_lang
         self.tokenizer.tgt_lang = target_lang
 
         encoded = self.tokenizer(
@@ -121,6 +126,5 @@ class TranslationModel:
 
         return {
             "translatedText": translated_text,
-            "sourceLang": source_lang or "en",
             "targetLang": target_lang,
         }

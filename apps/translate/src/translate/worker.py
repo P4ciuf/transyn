@@ -74,7 +74,9 @@ def main() -> None:
     signal.signal(signal.SIGTERM, _shutdown)
 
     logger.info("Connecting to Redis at %s", settings.redis_url)
-    conn = redis.from_url(settings.redis_url)
+    conn = redis.from_url(settings.redis_url, socket_timeout=None, socket_connect_timeout=10)
+    conn.ping()
+    logger.info("Connected to Redis")
 
     # Model is loaded eagerly at startup (not lazily on first job) so
     # the first translation doesn't incur a multi-second cold-start delay.
@@ -86,8 +88,17 @@ def main() -> None:
         try:
             # BRPOP returns a (key, value) tuple on success, None on timeout.
             result = conn.brpop(settings.job_list_key, timeout=settings.poll_timeout_seconds)
-        except (redis.ConnectionError, redis.TimeoutError) as exc:
-            logger.error("Redis connection error: %s", exc)
+        except redis.TimeoutError:
+            logger.debug("BRPOP timed out, retrying")
+            continue
+        except redis.ConnectionError as exc:
+            logger.error("Redis connection lost: %s", exc)
+            try:
+                conn = redis.from_url(settings.redis_url, socket_timeout=None, socket_connect_timeout=10)
+                conn.ping()
+                logger.info("Reconnected to Redis")
+            except Exception as reconnect_exc:
+                logger.error("Failed to reconnect: %s", reconnect_exc)
             continue
 
         if result is None:
@@ -104,17 +115,16 @@ def main() -> None:
         job_id = job.get("id")
         text = job.get("text")
         target_lang = job.get("targetLang")
-        source_lang = job.get("sourceLang")
 
         # Require at minimum id, text, and target_lang to proceed.
         if not job_id or not text or not target_lang:
             logger.warning("Skipping incomplete job: %s", job)
             continue
 
-        logger.info("Processing job %s: %s -> %s", job_id, source_lang or "auto", target_lang)
+        logger.info("Processing job %s -> %s", job_id, target_lang)
 
         try:
-            translation = model.translate(text, target_lang, source_lang)
+            translation = model.translate(text, target_lang)
         except Exception as exc:
             logger.error("Translation failed for job %s: %s", job_id, exc)
             continue

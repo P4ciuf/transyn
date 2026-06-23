@@ -6,9 +6,13 @@ requires-python = ">=3.12"
 license = { text = "Apache-2.0" }
 authors = [{ name = "P4ciuf" }]
 dependencies = [
+    "accelerate>=1.0.0",
+    "bitsandbytes>=0.46.1",
+    "langdetect>=1.0.0",
     "redis>=5.0.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    "sentencepiece>=0.2.0",
     "transformers>=4.0.0",
     "torch>=2.0.0",
 ]
