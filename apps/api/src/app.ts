@@ -27,6 +27,9 @@ EnvUtils.checkVariables();
 
 const app = fastify();
 
+// Reserved decorator for future authentication middleware (no-op for now).
+app.decorate("authenticate", );
+
 app.register(helmet, { global: true });
 app.register(rateLimit, {
   max: EnvUtils.variables.RATE_LIMIT_MAX,
@@ -65,10 +68,36 @@ app.register(loadRoutes, {
 
 registerErrorHandler(app);
 
+app.get(
+  "/health",
+  {
+    schema: {
+      description:
+        "Health check endpoint to verify the API server is running and reachable. " +
+        "Returns a simple status object. Does not require authentication.",
+      summary: "Health check",
+      tags: ["System"],
+      operationId: "healthCheck",
+      response: {
+        200: {
+          description: "Server is healthy.",
+          type: "object",
+          properties: {
+            status: { type: "string", enum: ["ok"] },
+          },
+        },
+      },
+    },
+  },
+  async (_request, reply) => {
+    return reply.status(200).send({ status: "ok" });
+  },
+);
+
 await app.ready();
 
 // [IP_ADDRESS] is a template token replaced at deploy time (e.g. by envsubst in nginx/Docker entrypoint)
-app.listen({ port: EnvUtils.variables.PORT, host: "[IP_ADDRESS]" }, (err) => {
+app.listen({ port: EnvUtils.variables.PORT, host: "0.0.0.0" }, (err) => {
   if (err) {
     logger.error("Error starting server", { meta: err });
     process.exit(1);

@@ -65,12 +65,24 @@ export function registerErrorHandler(app: FastifyInstance) {
     const fallback = error as Record<string, unknown>;
 
     if (typeof fallback.statusCode === "number") {
+      const status = fallback.statusCode as number;
+
+      let errorCode: ErrorCodeValue;
+      if (status === 429) errorCode = "TOO_MANY_REQUESTS";
+      else if (status === 400) errorCode = "BAD_REQUEST";
+      else if (status === 401) errorCode = "UNAUTHORIZED";
+      else if (status === 403) errorCode = "FORBIDDEN";
+      else if (status === 404) errorCode = "NOT_FOUND";
+      else if (status === 409) errorCode = "CONFLICT";
+      else if (status >= 500) errorCode = "INTERNAL_SERVER";
+      else errorCode = "BAD_REQUEST";
+
       return reply
-        .code(fallback.statusCode as number)
+        .code(status)
         .send(
           standardErrorResponse(
             (fallback.message as string) ?? "Request error",
-            "TOO_MANY_REQUESTS",
+            errorCode,
           ),
         );
     }

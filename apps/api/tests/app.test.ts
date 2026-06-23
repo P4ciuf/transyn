@@ -10,6 +10,8 @@ vi.stubEnv("NODE_ENV", "test");
 const mockFastifyInstance = {
   register: vi.fn(),
   route: vi.fn(),
+  decorate: vi.fn(),
+  get: vi.fn(),
   ready: vi.fn().mockResolvedValue(undefined),
   listen: vi.fn((_opts: unknown, cb: (err: Error | null) => void) => {
     cb(null);
