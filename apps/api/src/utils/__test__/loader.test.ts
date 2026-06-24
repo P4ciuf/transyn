@@ -55,8 +55,12 @@ describe("loadRoutes", () => {
       "/app/src/routes/translate.route.ts",
       "/app/src/routes/stats.route.ts",
     ]);
-    vi.doMock("/app/src/routes/translate.route.ts", () => ({ default: vi.fn().mockReturnValue(route1) }));
-    vi.doMock("/app/src/routes/stats.route.ts", () => ({ default: vi.fn().mockReturnValue(route2) }));
+    vi.doMock("/app/src/routes/translate.route.ts", () => ({
+      default: vi.fn().mockReturnValue(route1),
+    }));
+    vi.doMock("/app/src/routes/stats.route.ts", () => ({
+      default: vi.fn().mockReturnValue(route2),
+    }));
 
     await loadRoutes(mockApp);
 

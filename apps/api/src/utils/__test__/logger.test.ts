@@ -126,10 +126,10 @@ describe("logger", () => {
       vi.clearAllMocks();
 
       logger.audit("LOGIN_SUCCESS", "user@example.com");
-      expect(mockLogInstance.info).toHaveBeenCalledWith(
-        "[AUDIT] LOGIN_SUCCESS",
-        { actor: "user@example.com", resource: undefined },
-      );
+      expect(mockLogInstance.info).toHaveBeenCalledWith("[AUDIT] LOGIN_SUCCESS", {
+        actor: "user@example.com",
+        resource: undefined,
+      });
     });
 
     it("includes resource and prefix when provided", async () => {
@@ -138,10 +138,10 @@ describe("logger", () => {
       vi.clearAllMocks();
 
       logger.audit("SECRET_READ", "user@example.com", "secret:abc123", "api");
-      expect(mockLogInstance.info).toHaveBeenCalledWith(
-        "[AUDIT] [API] SECRET_READ",
-        { actor: "user@example.com", resource: "secret:abc123" },
-      );
+      expect(mockLogInstance.info).toHaveBeenCalledWith("[AUDIT] [API] SECRET_READ", {
+        actor: "user@example.com",
+        resource: "secret:abc123",
+      });
     });
 
     it("includes additional meta when provided", async () => {
@@ -150,10 +150,11 @@ describe("logger", () => {
       vi.clearAllMocks();
 
       logger.audit("SECRET_READ", "user@example.com", "secret:xyz", undefined, { count: 5 });
-      expect(mockLogInstance.info).toHaveBeenCalledWith(
-        "[AUDIT] SECRET_READ",
-        { actor: "user@example.com", resource: "secret:xyz", meta: { count: 5 } },
-      );
+      expect(mockLogInstance.info).toHaveBeenCalledWith("[AUDIT] SECRET_READ", {
+        actor: "user@example.com",
+        resource: "secret:xyz",
+        meta: { count: 5 },
+      });
     });
   });
 

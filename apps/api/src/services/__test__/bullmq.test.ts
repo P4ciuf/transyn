@@ -66,7 +66,9 @@ describe("QueueService", () => {
     const { Queue } = await import("bullmq");
     const { RedisPlugin } = await import("../redis.js");
 
-    vi.mocked(Queue).mockClear().mockImplementation(() => mockQueue as unknown as InstanceType<typeof Queue>);
+    vi.mocked(Queue)
+      .mockClear()
+      .mockImplementation(() => mockQueue as unknown as InstanceType<typeof Queue>);
     vi.mocked(RedisPlugin.Instance).mockResolvedValue(mockRedisPluginInstance);
   });
 
@@ -102,7 +104,10 @@ describe("QueueService", () => {
 
       const expectedJob: TranslationJobData = { id: uuid, text: "Hello", targetLang: "fr" };
 
-      expect(mockRedisClient.lpush).toHaveBeenCalledWith("transyn:jobs", JSON.stringify(expectedJob));
+      expect(mockRedisClient.lpush).toHaveBeenCalledWith(
+        "transyn:jobs",
+        JSON.stringify(expectedJob),
+      );
       expect(mockQueue.add).toHaveBeenCalledWith("translate", expectedJob, {
         jobId: uuid,
         removeOnComplete: { age: 3600 },

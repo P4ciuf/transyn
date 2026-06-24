@@ -79,12 +79,7 @@ export function registerErrorHandler(app: FastifyInstance) {
 
       return reply
         .code(status)
-        .send(
-          standardErrorResponse(
-            (fallback.message as string) ?? "Request error",
-            errorCode,
-          ),
-        );
+        .send(standardErrorResponse((fallback.message as string) ?? "Request error", errorCode));
     }
 
     req.log.error(error);

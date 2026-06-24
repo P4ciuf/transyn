@@ -112,15 +112,18 @@ describe("Fastify app", () => {
   it("registers the Swagger plugin", async () => {
     await import("../src/app.js");
     const swagger = await import("@fastify/swagger");
-    expect(mockFastifyInstance.register).toHaveBeenCalledWith(swagger.default, expect.objectContaining({
-      openapi: expect.objectContaining({
-        openapi: "3.1.0",
-        info: expect.objectContaining({
-          title: "Transyn API",
-          version: "1.0.0",
+    expect(mockFastifyInstance.register).toHaveBeenCalledWith(
+      swagger.default,
+      expect.objectContaining({
+        openapi: expect.objectContaining({
+          openapi: "3.1.0",
+          info: expect.objectContaining({
+            title: "Transyn API",
+            version: "1.0.0",
+          }),
         }),
       }),
-    }));
+    );
   });
 
   it("registers the route loader with /api prefix", async () => {

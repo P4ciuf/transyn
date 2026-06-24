@@ -15,14 +15,16 @@ vi.mock("../../utils/logger.js", () => ({
 const { logger } = await import("../../utils/logger.js");
 
 describe("registerErrorHandler", () => {
-  let setErrorHandlerFn: ((error: Error, req: FastifyRequest, reply: FastifyReply) => Promise<void>) | undefined;
+  let setErrorHandlerFn:
+    | ((error: Error, req: FastifyRequest, reply: FastifyReply) => Promise<void>)
+    | undefined;
   let mockReply: { code: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn> };
   let mockReq: { log: { error: ReturnType<typeof vi.fn> } };
   let mockApp: FastifyInstance;
 
   function buildMockReply(): { code: ReturnType<typeof vi.fn>; send: ReturnType<typeof vi.fn> } {
     const send = vi.fn();
-    const code = vi.fn().mockImplementation(() => ({ code, send } as unknown as FastifyReply));
+    const code = vi.fn().mockImplementation(() => ({ code, send }) as unknown as FastifyReply);
     return { code, send };
   }
 
@@ -53,7 +55,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = AppError.BadRequest("Invalid input");
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(400);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -67,7 +73,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = AppError.Unauthorized();
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(401);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -81,7 +91,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = new AppError();
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(500);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -98,7 +112,11 @@ describe("registerErrorHandler", () => {
       const validationDetails = [{ path: ["text"], message: "Required" }];
       const error = { validation: validationDetails, statusCode: 400 } as unknown as Error;
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(400);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -115,7 +133,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = { statusCode: 429, message: "Rate limit exceeded" } as unknown as Error;
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(429);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -129,7 +151,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = { statusCode: 429 } as unknown as Error;
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(429);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -145,7 +171,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = new Error("Something went wrong");
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReply.code).toHaveBeenCalledWith(500);
       expect(mockReply.send).toHaveBeenCalledWith({
@@ -159,7 +189,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = new Error("Unexpected error");
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(mockReq.log.error).toHaveBeenCalledWith(error);
     });
@@ -171,7 +205,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = new Error("Prod error");
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(logger.error).toHaveBeenCalledWith("New Error detected:", { meta: error });
 
@@ -183,7 +221,11 @@ describe("registerErrorHandler", () => {
       registerErrorHandler(mockApp);
       const error = new Error("Test error");
 
-      await setErrorHandlerFn!(error, mockReq as unknown as FastifyRequest, mockReply as unknown as FastifyReply);
+      await setErrorHandlerFn!(
+        error,
+        mockReq as unknown as FastifyRequest,
+        mockReply as unknown as FastifyReply,
+      );
 
       expect(logger.error).not.toHaveBeenCalled();
     });

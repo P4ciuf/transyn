@@ -52,7 +52,11 @@ describe("POST /translate", () => {
 
     it("defines body schema requiring text and targetLanguage", () => {
       expect(route.schema).toBeDefined();
-      const bodySchema = route.schema!.body as { type: string; required: string[]; properties: Record<string, unknown> };
+      const bodySchema = route.schema!.body as {
+        type: string;
+        required: string[];
+        properties: Record<string, unknown>;
+      };
       expect(bodySchema.type).toBe("object");
       expect(bodySchema.required).toEqual(["text", "targetLanguage"]);
       expect(bodySchema.properties).toHaveProperty("text");
@@ -60,7 +64,9 @@ describe("POST /translate", () => {
     });
 
     it("includes all supported language codes in the targetLanguage enum", () => {
-      const bodySchema = route.schema!.body as { properties: Record<string, { type: string; enum?: string[] }> };
+      const bodySchema = route.schema!.body as {
+        properties: Record<string, { type: string; enum?: string[] }>;
+      };
       const langEnum = bodySchema.properties.targetLanguage.enum;
 
       expect(langEnum).toContain("en");
@@ -97,8 +103,15 @@ describe("POST /translate", () => {
     });
 
     it("calls submitTranslation with the correct text and targetLanguage", async () => {
-      mockQueueService.submitTranslation.mockResolvedValue({ id: "job-002", text: "Bonjour", targetLang: "en" });
-      mockQueueService.waitForResult.mockResolvedValue({ translatedText: "Hello", targetLang: "en" });
+      mockQueueService.submitTranslation.mockResolvedValue({
+        id: "job-002",
+        text: "Bonjour",
+        targetLang: "en",
+      });
+      mockQueueService.waitForResult.mockResolvedValue({
+        translatedText: "Hello",
+        targetLang: "en",
+      });
 
       const request = {
         body: { text: "Bonjour", targetLanguage: "en" },
@@ -158,7 +171,11 @@ describe("POST /translate", () => {
     });
 
     it("rejects when waitForResult fails", async () => {
-      mockQueueService.submitTranslation.mockResolvedValue({ id: "job-005", text: "Error", targetLang: "de" });
+      mockQueueService.submitTranslation.mockResolvedValue({
+        id: "job-005",
+        text: "Error",
+        targetLang: "de",
+      });
       mockQueueService.waitForResult.mockRejectedValue(new Error("Redis down"));
 
       const request = {

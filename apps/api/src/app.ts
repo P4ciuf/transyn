@@ -28,7 +28,7 @@ EnvUtils.checkVariables();
 const app = fastify();
 
 // Reserved decorator for future authentication middleware (no-op for now).
-app.decorate("authenticate", );
+app.decorate("authenticate");
 
 app.register(helmet, { global: true });
 app.register(rateLimit, {

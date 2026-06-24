@@ -68,10 +68,7 @@ export class QueueService {
    * @returns The job data including the generated UUID.
    * @async
    */
-  public async submitTranslation(
-    text: string,
-    targetLang: string,
-  ): Promise<TranslationJobData> {
+  public async submitTranslation(text: string, targetLang: string): Promise<TranslationJobData> {
     const id = crypto.randomUUID();
     const jobData: TranslationJobData = { id, text, targetLang };
 
