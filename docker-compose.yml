@@ -26,10 +26,10 @@ services:
     environment:
       - PORT=3000
       - REDIS_URL=redis://redis:6379
-      - RATE_LIMIT_MAX=100
-      - RATE_LIMIT_WINDOW_MS=60000
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
       - TRANSLATE_SERVICE_URL=http://translate:8000
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
     networks:
       - transyn-net
     depends_on:
@@ -51,12 +51,14 @@ services:
       context: ./apps/translate
       dockerfile: Dockerfile
     container_name: transyn-translate
+    env_file:
+      - ./apps/translate/.env
     environment:
       - REDIS_URL=redis://redis:6379
-      - MODEL_NAME=facebook/m2m100_418M
-      - QUANTIZATION=int8
-      - LOG_LEVEL=INFO
-      - MAX_INPUT_LENGTH=512
+      - MODEL_NAME=${MODEL_NAME:-tencent/Hy-MT2-1.8B}
+      - QUANTIZATION=${QUANTIZATION:-int8}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MAX_INPUT_LENGTH=${MAX_INPUT_LENGTH:-512}
     networks:
       - transyn-net
     depends_on:
