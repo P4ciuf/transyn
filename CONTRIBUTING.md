@@ -12,7 +12,7 @@ Be respectful, constructive, and collaborative. Harassment of any kind will not 
 2. Install dependencies:
 
    ```bash
-   # Requires pnpm >= 11 and Node.js >= 22
+   # Requires pnpm >= 11 and Node.js >= 24
    pnpm install
    ```
 
@@ -32,32 +32,34 @@ Be respectful, constructive, and collaborative. Harassment of any kind will not 
 | ----------------- | ---------------------------------- |
 | `pnpm lint`       | Lint all packages (ESLint)         |
 | `pnpm format`     | Format all packages (Prettier)     |
-| `pnpm test`       | Run tests across all packages      |
+| `pnpm test`       | Run Vitest tests across API        |
+| `pnpm build`      | Build API for production           |
 
 ### API (`apps/api`)
 
 ```bash
-pnpm --filter api dev          # Start dev server with hot reload
-pnpm --filter api build        # Build for production
-pnpm --filter api start        # Start production server
-pnpm --filter api test         # Run tests (Vitest)
-pnpm --filter api test:watch   # Run tests in watch mode
-pnpm --filter api lint         # Run ESLint
-pnpm --filter api format       # Run Prettier
+pnpm --filter @transyn/api dev          # Start dev server with hot reload
+pnpm --filter @transyn/api build        # Build for production
+pnpm --filter @transyn/api start        # Start production server
+pnpm --filter @transyn/api test         # Run tests (Vitest)
+pnpm --filter @transyn/api test:watch   # Run tests in watch mode
+pnpm --filter @transyn/api lint         # Run ESLint
+pnpm --filter @transyn/api format       # Run Prettier
 ```
 
 ### Translate (`apps/translate`)
 
 ```bash
-pnpm --filter translate dev    # Start worker in dev mode
-pnpm --filter translate test   # Run tests (pytest)
-pnpm --filter translate lint   # Run Ruff linter
-pnpm --filter translate format # Run Ruff formatter
+cd apps/translate
+python -m translate.worker              # Start the Redis-backed worker
+pytest                                   # Run tests
+ruff check                               # Run Ruff linter
+ruff format                              # Run Ruff formatter
 ```
 
 ## Code Style
 
-- **Node.js**: ESLint + Prettier. Run `pnpm format` before committing.
+- **TypeScript**: ESLint + Prettier. Run `pnpm format` before committing.
 - **Python**: Ruff. Run `ruff format` and `ruff check` before committing.
 - Write tests for new features and bug fixes.
 - Keep PRs focused and reasonably sized.
@@ -74,16 +76,17 @@ docs: update environment variable table
 
 ## Pull Requests
 
-1. Ensure tests pass: `pnpm test`
-2. Ensure linting passes: `pnpm lint`
+1. Ensure tests pass: `pnpm test` and `cd apps/translate && pytest`
+2. Ensure linting passes: `pnpm lint` and `cd apps/translate && ruff check`
 3. Update documentation if needed.
 4. Open a PR against the `main` branch with a clear description.
 
 ## Project Structure Conventions
 
 - `apps/api` — Fastify REST API server
-- `apps/translate` — Python M2M100 inference worker
+- `apps/translate` — Python Hy-MT2 inference worker
 - `docs/` — Project documentation and requirements
+- `.github/workflows/` — CI pipeline definitions
 - Config files at root level (`.prettierrc`, `eslint.config.js`, etc.)
 
 ## Questions?

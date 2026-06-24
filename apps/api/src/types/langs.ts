@@ -1,7 +1,7 @@
 import { Langs } from "../config/langs.js";
 
 /**
- * Union of all M2M100 language names (values of the {@link Langs} map).
+ * Union of all Hy-MT2 language names (values of the {@link Langs} map).
  *
  * @example
  * ```ts

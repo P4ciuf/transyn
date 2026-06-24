@@ -4,7 +4,7 @@
  *
  * @property id - UUID v4 job identifier shared between API and worker.
  * @property text - Source text to translate.
- * @property targetLang - M2M100 language code for the target language.
+ * @property targetLang - Hy-MT2 language code for the target language.
  */
 export interface TranslationJobData {
   id: string;

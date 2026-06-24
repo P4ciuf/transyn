@@ -1,6 +1,6 @@
 # Project Requirements: transyn - Self-Hosted Translation API
 
-**Document Version:** 0.0.1
+**Document Version:** 1.0.1
 **Date:** 21/06/2026 - dd/mm/yyyy
 **Author:** P4ciuf
 
@@ -27,7 +27,7 @@ This document outlines the requirements for "transyn," a self-hosted Translation
     *   Requires a target language parameter.
     *   Returns translated text as the primary output.
     *   Supports character encoding (UTF-8).
-*   **Language Support:** Initially support approximately 100 languages using the M2M100 model.  Expandable in future iterations.
+*   **Language Support:** Initially support approximately 100 languages using the Hy-MT2 model.  Expandable in future iterations.
 *   **Rate Limiting:** Implement initial rate limiting of 100 requests per minute per IP address. Configurable via environment variables.
 *   **Error Handling:** Provide informative error messages for invalid input, service errors, and rate limit exceedance.
 
@@ -36,7 +36,7 @@ This document outlines the requirements for "transyn," a self-hosted Translation
 *   **Caching:** Aggressively cache translation results using Redis to minimize latency and server load.  Cache invalidation strategy will be defined during implementation.
 *   **Queuing:** Utilize BullMQ with Redis for asynchronous processing of translation requests, stabilizing the API under heavy load.
 *   **Statistics Logging:** Asynchronously log usage statistics (request counts, error rates, language pairs) to MongoDB Atlas.
-*   **Model Loading & Management:** Implement a mechanism for loading and potentially updating the M2M100 model.
+*   **Model Loading & Management:** Implement a mechanism for loading and potentially updating the Hy-MT2 model.
 
 ## 4. Non-Functional Requirements
 
@@ -65,7 +65,7 @@ This document outlines the requirements for "transyn," a self-hosted Translation
 *   **Backend Language/Framework:** Node.js with Fastify
 *   **Queue System:** BullMQ
 *   **Cache & Rate Limiting:** Redis
-*   **Machine Learning Inference:** M2M100 (418M variant) – Quantized to INT8 or 4-bit for efficient inference on limited resources.
+*   **Machine Learning Inference:** Hy-MT2 (1.8B variant) – Quantized to INT8 or 4-bit for efficient inference on limited resources.
 *   **Database (Statistics):** MongoDB Atlas with Mongoose or native driver.
 *   **Hosting Environment:** OVHCloud VPS (2027 range - specific configuration details to be confirmed).
 * **Domain:** transyn.xyz (with planned subdomains: api, docs, status)
@@ -83,7 +83,7 @@ The initial MVP will focus on delivering a functional translation API with the c
 
 ## 7. Future Considerations
 
-*   **Expanded Language Support:** Add support for additional languages as the M2M100 model evolves or alternative models are evaluated.
+*   **Expanded Language Support:** Add support for additional languages as the Hy-MT2 model evolves or alternative models are evaluated.
 *   **Model Optimization:** Explore more advanced quantization techniques and hardware acceleration to improve inference speed and resource utilization.
 *   **API Versioning:** Implement API versioning strategy for future compatibility.
 *  **Integration with other platforms**: Provide an easy way of integration with existing applications, such as libraries or SDKs in different languages

@@ -18,7 +18,7 @@ const DEFAULT_TIMEOUT_MS = 30_000;
  * BullMQ-backed queue plugin for asynchronous translation jobs.
  *
  * Each translation is submitted as a BullMQ job and simultaneously pushed
- * onto a Redis list consumed by the Python M2M100 worker.  The caller polls
+ * onto a Redis list consumed by the Python Hy-MT2 worker.  The caller polls
  * for the result via {@link waitForResult}.
  *
  * @example
@@ -64,7 +64,7 @@ export class QueueService {
    * BRPOP it), then added to BullMQ for monitoring and stats.
    *
    * @param text - Source text to translate.
-   * @param targetLang - M2M100 target language code.
+   * @param targetLang - Hy-MT2 target language code.
    * @returns The job data including the generated UUID.
    * @async
    */

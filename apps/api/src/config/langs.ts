@@ -1,9 +1,9 @@
 /**
- * M2M100 language code to human-readable name mapping.
+ * Hy-MT2 language code to human-readable name mapping.
  *
- * Each key is a two-letter M2M100 tokenizer language code; each value is the
+ * Each key is a two-letter Hy-MT2 tokenizer language code; each value is the
  * English name.  Used for request validation (enum constraint) and to populate
- * OpenAPI documentation.  Sourced from the M2M100 tokenizer vocabulary.
+ * OpenAPI documentation.  Sourced from the Hy-MT2 tokenizer vocabulary.
  *
  * @const
  */

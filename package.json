@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "A self-hosted translation API for developers and SaaS platforms, powered by M2M100. Provides fast and scalable translation without reliance on external services. Aiming to be a \"DeepL-lite\" solution with full control",
+  "description": "A self-hosted translation API for developers and SaaS platforms, powered by Hy-MT2. Provides fast and scalable translation without reliance on external services. Aiming to be a \"DeepL-lite\" solution with full control",
   "scripts": {
     "dev": "pnpm --filter @transyn/api dev",
     "build": "pnpm --filter @transyn/api build",

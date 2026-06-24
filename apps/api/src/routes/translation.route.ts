@@ -4,7 +4,7 @@ import { Langs } from "../config/langs.js";
 import { QueueService } from "../services/bullmq.js";
 
 /**
- * POST /translate route — submits text to the M2M100 translation queue and
+ * POST /translate route — submits text to the Hy-MT2 translation queue and
  * waits for the result.
  *
  * This is a route factory function conforming to {@link AppRouteObject};
@@ -20,9 +20,9 @@ export default ((_fastify: FastifyInstance) => ({
   url: "/translate",
   schema: {
     description:
-      "Submits a text translation job to the M2M100-powered worker queue. " +
-      "The request returns immediately with a translation result once the " +
-      "worker has completed processing. Source language is auto-detected.",
+      "Submits a text translation job to the Hy-MT2-powered worker queue. " +
+      "The request returns with a translation result once the worker " +
+      "has completed processing.",
     summary: "Translate text",
     tags: ["Translation"],
     operationId: "translateText",
@@ -38,7 +38,7 @@ export default ((_fastify: FastifyInstance) => ({
         targetLanguage: {
           type: "string",
           enum: Object.keys(Langs),
-          description: "M2M100 language code for the target language (e.g. 'fr', 'de', 'es').",
+          description: "Hy-MT2 language code for the target language (e.g. 'fr', 'de', 'es').",
           examples: ["fr"],
         },
       },
