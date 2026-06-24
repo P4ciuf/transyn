@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- CI workflow (`.github/workflows/ci.yaml`): switched from `npm` to `pnpm` with `pnpm/action-setup@v4`, lowered Node.js from 24 to 22, replaced `npm ci` with `pnpm install`, and updated all `npm run` script invocations to `pnpm run`
+
+## [1.0.0] - 2026-06-24
+
 ### Added
 - `QueueService` class (`apps/api/src/services/bullmq.ts`) with BullMQ-backed job submission, polling result retrieval via Redis, queue statistics, and graceful shutdown — replaces the legacy `QueuePlugin`
 - `RedisPlugin` class (`apps/api/src/services/redis.ts`) around ioredis with connect/error event logging and convenience methods (get, set, del, exists, keys, ping, disconnect) — replaces the legacy `RedisPlugin`
