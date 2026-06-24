@@ -1,7 +1,7 @@
 """Redis-backed worker that consumes translation jobs and writes results.
-
+ 
 The worker is designed to run as a long-lived process (typically inside
-a Docker container).  It connects to Redis once, loads the M2M100 model
+a Docker container).  It connects to Redis once, loads the Hy-MT2 model
 once, and then enters a blocking BRPOP loop that processes jobs until
 a SIGINT or SIGTERM signal is received.
 """
@@ -59,7 +59,7 @@ def main() -> None:
     1. Load settings from the environment.
     2. Configure logging.
     3. Register SIGINT / SIGTERM handlers.
-    4. Connect to Redis and load the M2M100 model (both once at startup).
+    4. Connect to Redis and load the Hy-MT2 model (both once at startup).
     5. Enter a blocking BRPOP loop:
        a. Wait for a job on the configured Redis list.
        b. Validate the JSON payload and required fields.
@@ -80,7 +80,7 @@ def main() -> None:
 
     # Model is loaded eagerly at startup (not lazily on first job) so
     # the first translation doesn't incur a multi-second cold-start delay.
-    model = TranslationModel(settings.model_name, settings.quantization)
+    model = TranslationModel(settings.model_name, settings.quantization, settings.hf_token)
 
     logger.info("Worker started, waiting for jobs on %s", settings.job_list_key)
 
@@ -126,7 +126,7 @@ def main() -> None:
         try:
             translation = model.translate(text, target_lang)
         except Exception as exc:
-            logger.error("Translation failed for job %s: %s", job_id, exc)
+            logger.exception("Translation failed for job %s", job_id)
             continue
 
         result_key = f"{settings.result_key_prefix}{job_id}"

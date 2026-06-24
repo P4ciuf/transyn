@@ -11,7 +11,8 @@ class TestSettings:
         with patch.dict(os.environ, {}, clear=True):
             settings = Settings()
             assert settings.redis_url == "redis://localhost:6379"
-            assert settings.model_name == "facebook/m2m100_418M"
+            assert settings.model_name == "tencent/Hy-MT2-1.8B"
+            assert settings.hf_token is None
             assert settings.quantization is None
             assert settings.log_level == "INFO"
             assert settings.max_input_length == 512
@@ -25,7 +26,8 @@ class TestSettings:
             os.environ,
             {
                 "REDIS_URL": "redis://custom:6380",
-                "MODEL_NAME": "facebook/m2m100_1.2B",
+                "MODEL_NAME": "Hy-MT2-1.8B-custom",
+                "HF_TOKEN": "hf_secret_token",
                 "QUANTIZATION": "int8",
                 "LOG_LEVEL": "DEBUG",
                 "MAX_INPUT_LENGTH": "1024",
@@ -38,7 +40,8 @@ class TestSettings:
         ):
             settings = Settings()
             assert settings.redis_url == "redis://custom:6380"
-            assert settings.model_name == "facebook/m2m100_1.2B"
+            assert settings.model_name == "Hy-MT2-1.8B-custom"
+            assert settings.hf_token == "hf_secret_token"
             assert settings.quantization == "int8"
             assert settings.log_level == "DEBUG"
             assert settings.max_input_length == 1024

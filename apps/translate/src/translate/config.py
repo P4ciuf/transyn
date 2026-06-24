@@ -32,8 +32,11 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     """Redis server URL passed to :func:`redis.from_url`."""
 
-    model_name: str = "facebook/m2m100_418M"
-    """HuggingFace model identifier for :class:`M2M100ForConditionalGeneration`."""
+    model_name: str = "tencent/Hy-MT2-1.8B"
+    """HuggingFace model identifier for :class:`AutoModelForCausalLM`."""
+
+    hf_token: str | None = None
+    """HuggingFace API token for private/gated model access."""
 
     quantization: str | None = None
     """When ``"int8"``, applies bitsandbytes INT8 quantisation at load time."""

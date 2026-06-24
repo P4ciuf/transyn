@@ -22,8 +22,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -33,7 +34,7 @@ class TestWorkerMain:
         mock_conn = MagicMock()
         mock_from_url.return_value = mock_conn
 
-        job_data = {"id": "job-001", "text": "Hello", "targetLang": "fr", "sourceLang": "en"}
+        job_data = {"id": "job-001", "text": "Hello", "targetLang": "fr"}
 
         def stop_after_one(_keys: object, timeout: object) -> object:
             import translate.worker as worker_mod
@@ -45,19 +46,21 @@ class TestWorkerMain:
         mock_model = MagicMock()
         mock_model.translate.return_value = {
             "translatedText": "Bonjour",
-            "sourceLang": "en",
             "targetLang": "fr",
         }
         mock_translation_model_cls.return_value = mock_model
 
         main()
 
+        mock_translation_model_cls.assert_called_once_with(
+            "tencent/Hy-MT2-1.8B", None, None
+        )
+
         mock_conn.set.assert_called_once()
         stored_key = mock_conn.set.call_args.args[0]
         stored_value = json.loads(mock_conn.set.call_args.args[1])
         assert stored_key == "transyn:result:job-001"
         assert stored_value["translatedText"] == "Bonjour"
-        assert stored_value["sourceLang"] == "en"
         assert stored_value["targetLang"] == "fr"
 
     @patch("redis.from_url")
@@ -73,8 +76,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -114,8 +118,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -153,8 +158,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -195,8 +201,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -233,8 +240,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -271,8 +279,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -310,8 +319,9 @@ class TestWorkerMain:
         mock_settings = MagicMock()
         mock_settings.log_level = "INFO"
         mock_settings.redis_url = "redis://localhost:6379"
-        mock_settings.model_name = "facebook/m2m100_418M"
+        mock_settings.model_name = "tencent/Hy-MT2-1.8B"
         mock_settings.quantization = None
+        mock_settings.hf_token = None
         mock_settings.job_list_key = "transyn:jobs"
         mock_settings.result_key_prefix = "transyn:result:"
         mock_settings.result_ttl_seconds = 3600
@@ -333,7 +343,6 @@ class TestWorkerMain:
         mock_model = MagicMock()
         mock_model.translate.return_value = {
             "translatedText": "Bonjour",
-            "sourceLang": "en",
             "targetLang": "fr",
         }
         mock_translation_model_cls.return_value = mock_model

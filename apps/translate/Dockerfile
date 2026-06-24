@@ -8,7 +8,7 @@ WORKDIR /app
 FROM base AS builder
 COPY . .
 RUN rm -rf /root/.cache/pip /tmp/pip-* && pip cache purge 2>/dev/null; \
-    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --upgrade 'pip<26' && \
     pip install --no-cache-dir .
 
 FROM base AS runner
@@ -28,7 +28,7 @@ USER translate:translate
 EXPOSE 8000
 
 ENV REDIS_URL=redis://localhost:6379
-ENV MODEL_NAME=facebook/m2m100_418M
+ENV MODEL_NAME=Hy-MT2-1.8B
 ENV QUANTIZATION=int8
 ENV HF_HOME=/home/translate/.cache/huggingface
 
